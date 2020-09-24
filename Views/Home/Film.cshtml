@@ -1,0 +1,37 @@
+﻿@model FilmCatalog.Models.Film;
+@{
+    var film = Model;
+    ViewData["Title"] = film.Title;
+    List<Film> films = ViewData["Films"] as List<Film>;
+    string base64String = string.Empty;
+}
+
+<div class="film">
+    <section class="filmInfoSection">
+        <div class="image">
+            @{
+                base64String = Convert.ToBase64String(film.Poster);
+            }
+
+            <img class="poster" src="@String.Format("data:image/png;base64,{0}", base64String)"/>
+        </div>
+    </section>
+    <section class="filmInfoSection">
+        <p>
+            <strong>Title: </strong>@film.Title
+        </p>
+        <p>
+            <strong>Year Published: </strong>@film.YearPublished
+        </p>
+        <p>
+            <strong>Description:</strong>
+        </p>
+        <p>@film.Description</p>
+        <p>
+            <strong>Directed by: </strong>@film.Director
+        </p>
+        <p>
+            <strong>Posted by: </strong>@film.User.Email
+        </p>
+    </section>
+</div>

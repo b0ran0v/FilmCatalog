@@ -1,0 +1,48 @@
+﻿@model FilmCatalog.Models.Forms.FilmForm;
+@{
+    ViewData["Title"] = "Edit Film";
+}
+
+<div class="row" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+    <div class="col-md-6 mx-auto">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="text-uppercase text-center">Film Edit Form</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" asp-action="EditFilm" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="@Model.FilmId" value="@Model.FilmId"/>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <div class="form-group">
+                        <label asp-for="Title"></label>
+                        <input asp-for="Title" class="form-control" value="@Model.Title"/>
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="YearPublished"></label>
+                        <input asp-for="YearPublished" class="form-control" type="number" value="@Model.YearPublished"/>
+                        <span asp-validation-for="YearPublished" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Description"></label>
+                        <textarea asp-for="Description" class="form-control" rows="6" style="resize: none">
+                            @Model.Description
+                        </textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Director"></label>
+                        <input asp-for="Director" class="form-control" value="@Model.Director"/>
+                        <span asp-validation-for="Director" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Poster"></label>
+                        <input asp-for="Poster" class="form-control" type="file" value="@Model.Poster"/>
+                        <span asp-validation-for="Poster" class="text-danger"></span>
+                    </div>
+                    <input type="submit" value="Edit" class="btn btn-sm btn-success text-uppercase rounded-0"/>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

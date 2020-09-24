@@ -1,0 +1,36 @@
+﻿@{
+    ViewData["Title"] = "My Films";
+    List<Film> myFilms = ViewData["myFilms"] as List<Film>;
+    string base64String = string.Empty;
+}
+
+<div class="text-center">
+    <a asp-action="AddNewFilm" asp-controller="Admin" class="btn btn-sm btn-success text-uppercase rounded-0">Add New Film</a>
+    <div class="myFilms">
+        <h3>My Films</h3>
+        <table style="width:100%">
+            @foreach (var film in myFilms)
+            {
+                <tr>
+                    <th>
+                        @{
+                            base64String = Convert.ToBase64String(film.Poster);
+                        }
+                        <img class="myFilmsPoster" src="@String.Format("data:image/png;base64,{0}", base64String)"/>
+                    </th>
+                    <th>
+                        <a asp-action="Film" asp-controller="Home" asp-route-id="@film.FilmId">
+                            <strong>@film.Title</strong>
+                        </a>
+                    </th>
+                    <th>
+                        <a asp-action="EditFilm" asp-controller="Admin" asp-route-id="@film.FilmId">Edit</a>
+                    </th>
+                    <th>
+                        <a asp-action="RemoveFilm" asp-controller="Admin" asp-route-id="@film.FilmId">Remove</a>
+                    </th>
+                </tr>
+            }
+        </table>
+    </div>
+</div>

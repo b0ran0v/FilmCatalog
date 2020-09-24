@@ -1,0 +1,39 @@
+﻿@model PaginatedList<FilmCatalog.Models.Film>
+@{
+    ViewData["Title"] = "Home Page";
+    string base64String = string.Empty;
+}
+
+<div class="text-center">
+    <div class="films">
+        @foreach (var film in Model)
+        {
+            <div class="filmIndex">
+                <p>
+                    <a asp-action="Film" asp-controller="Home" asp-route-id="@film.FilmId">
+                        <strong>@film.Title</strong>
+                    </a>
+                </p>
+                <p>
+                    <div class="image">
+                        @{
+                            base64String = Convert.ToBase64String(film.Poster);
+                        }
+
+                        <img class="poster" src="@String.Format("data:image/png;base64,{0}", base64String)"/>
+                    </div>
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+@{
+    var prevDisabled = !Model.PreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.NextPage ? "disabled" : "";
+}
+
+<div class="pageNavigation">
+    <a asp-action="Index" asp-route-pageNumber="@(Model.PageIndex-1)" class="btn btn-default @prevDisabled">Prev</a>
+    <a asp-action="Index" asp-route-pageNumber="@(Model.PageIndex+1)" class="btn btn-default @nextDisabled">Next</a>
+</div>
