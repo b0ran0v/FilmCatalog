@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using FilmCatalog.Data;
 using Microsoft.AspNetCore.Mvc;
@@ -23,9 +24,8 @@ namespace FilmCatalog.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(int pageNumber=1)
+        public async Task<IActionResult> Index(int pageNumber = 1)
         {
-            var films = _context.Films.Include(film => film.User).ToList();
             return View(await PaginatedList<Film>.CreateAsync(_context.Films, pageNumber, 3));
         }
 
@@ -38,6 +38,7 @@ namespace FilmCatalog.Controllers
         public IActionResult Film(int id)
         {
             var film = _context.Films.Include(f => f.User).FirstOrDefault(f => f.FilmId == id);
+            if (film == null) return StatusCode(404);
             return View(film);
         }
     }

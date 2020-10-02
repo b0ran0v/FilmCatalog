@@ -2,12 +2,14 @@
     ViewData["Title"] = "My Films";
     List<Film> myFilms = ViewData["myFilms"] as List<Film>;
     string base64String = string.Empty;
+    string notification = ViewData["Notification"].ToString();
 }
 
 <div class="text-center">
     <a asp-action="AddNewFilm" asp-controller="Admin" class="btn btn-sm btn-success text-uppercase rounded-0">Add New Film</a>
     <div class="myFilms">
         <h3>My Films</h3>
+        <h2 style="color: green">@notification</h2>
         <table style="width:100%">
             @foreach (var film in myFilms)
             {
@@ -24,10 +26,14 @@
                         </a>
                     </th>
                     <th>
-                        <a asp-action="EditFilm" asp-controller="Admin" asp-route-id="@film.FilmId">Edit</a>
+                        <button>
+                            <a asp-action="EditFilm" asp-controller="Admin" asp-route-id="@film.FilmId">Edit</a>
+                        </button>
                     </th>
                     <th>
-                        <a asp-action="RemoveFilm" asp-controller="Admin" asp-route-id="@film.FilmId">Remove</a>
+                        <form asp-action="RemoveFilm" method="post" asp-route-id="@film.FilmId">
+                            <button type="submit" value="Remove">Remove</button>
+                        </form>
                     </th>
                 </tr>
             }

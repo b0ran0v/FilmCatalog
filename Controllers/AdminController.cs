@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using FilmCatalog.Data;
 using FilmCatalog.Models;
@@ -15,7 +14,8 @@ namespace FilmCatalog.Controllers
     public class AdminController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context;
+        private string _notification = string.Empty;
 
         public AdminController(ILogger<HomeController> logger, ApplicationDbContext context)
         {
@@ -28,8 +28,10 @@ namespace FilmCatalog.Controllers
         {
             var myFilms = from film in _context.Films where film.User.UserName == User.Identity.Name select film;
             ViewData["myFilms"] = myFilms.ToList();
+            ViewData["Notification"] = _notification;
             return View();
         }
+
 
         [HttpGet]
         [Authorize]
@@ -52,12 +54,12 @@ namespace FilmCatalog.Controllers
                     Description = model.Description,
                     Director = model.Director,
                     User = _context.Users.FirstOrDefault(user => user.UserName == User.Identity.Name),
-                    Poster = ReadImage(model.Poster)
+                    Poster = Tools.Tools.ReadImage(model.Poster)
                 };
                 _context.Films.Add(film);
                 _context.SaveChanges();
-                ModelState.AddModelError("", "Фильм успешно добавлен");
-                return View("AddNewFilm");
+                _notification = "Фильм успешно добавлен";
+                return RedirectToAction("AdminPage");
             }
 
             ModelState.AddModelError("", "Форма заполнена неправильно");
@@ -69,10 +71,11 @@ namespace FilmCatalog.Controllers
         [Authorize]
         public IActionResult EditFilm(int id)
         {
-            var film = _context.Films.FirstOrDefault(f => f.FilmId == id);
+            var film = _context.Films.Include(f=>f.User).FirstOrDefault(f => f.FilmId == id);
             var form = new FilmForm();
             if (film != null)
             {
+                if (film.User.UserName != User.Identity.Name) return StatusCode(403);
                 form.Title = film.Title;
                 form.YearPublished = film.YearPublished;
                 form.Director = film.Director;
@@ -84,52 +87,54 @@ namespace FilmCatalog.Controllers
                     IFormFile file = new FormFile(stream, 0, film.Poster.Length, "name", "fileName");
                     form.Poster = file;
                 }
+
+                return View(form);
             }
+
             return View(form);
         }
+
 
         [HttpPost]
         [Authorize]
         public IActionResult EditFilm(FilmForm form)
         {
-            var film = _context.Films.FirstOrDefault(f => f.FilmId == form.FilmId);
+            var film = _context.Films.Include(f=>f.User).FirstOrDefault(f => f.FilmId == form.FilmId);
             if (ModelState.IsValid)
             {
                 if (film != null)
                 {
+                    if (film.User.UserName != User.Identity.Name) return StatusCode(403);
                     film.Title = form.Title;
                     film.YearPublished = form.YearPublished;
                     film.Description = form.Description;
                     film.Director = form.Director;
-                    if(form.Poster!=null) film.Poster = ReadImage(form.Poster);
+                    if (form.Poster != null) film.Poster = Tools.Tools.ReadImage(form.Poster);
                     _context.Update(film);
                     _context.SaveChanges();
-                    ModelState.AddModelError("","Информация успешно изменена");
+                    _notification = "Информация успешно изменена";
+                    return RedirectToAction("AdminPage");
                 }
             }
             else
             {
-                ModelState.AddModelError("","Форма заполнена неправильно");
+                ModelState.AddModelError("", "Форма заполнена неправильно");
             }
 
             return View("EditFilm", form);
         }
 
+        [Authorize]
+        [HttpPost]
         public IActionResult RemoveFilm(int id)
         {
-            var filmToDelete = new Film {FilmId = id};
-            _context.Films.Attach(filmToDelete);
-            _context.Films.Remove(filmToDelete);
+            var film = _context.Films.Include(f=>f.User).FirstOrDefault(f => f.FilmId == id);
+            if (film == null) return StatusCode(404);
+            if (film.User.UserName != User.Identity.Name) return StatusCode(403);
+            _context.Films.Attach(film);
+            _context.Films.Remove(film);
             _context.SaveChanges();
             return RedirectToAction("AdminPage");
-        }
-
-        private byte[] ReadImage(IFormFile file)
-        {
-            var memoryStream = new MemoryStream();
-            file.CopyTo(memoryStream);
-            var bytes = memoryStream.ToArray();
-            return bytes;
         }
     }
 }
