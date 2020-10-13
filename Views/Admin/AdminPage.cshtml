@@ -1,24 +1,23 @@
 ﻿@{
     ViewData["Title"] = "My Films";
-    List<Film> myFilms = ViewData["myFilms"] as List<Film>;
-    string base64String = string.Empty;
+    List<Film> myFilms = (ViewData["myFilms"] as List<Film>) ?? new List<Film>();
     string notification = ViewData["Notification"].ToString();
 }
 
 <div class="text-center">
     <a asp-action="AddNewFilm" asp-controller="Admin" class="btn btn-sm btn-success text-uppercase rounded-0">Add New Film</a>
     <div class="myFilms">
+        <h6 style="color: green">@notification</h6>
         <h3>My Films</h3>
-        <h2 style="color: green">@notification</h2>
         <table style="width:100%">
             @foreach (var film in myFilms)
             {
                 <tr>
                     <th>
                         @{
-                            base64String = Convert.ToBase64String(film.Poster);
+                            var base64String = Convert.ToBase64String(film.Poster);
                         }
-                        <img class="myFilmsPoster" src="@String.Format("data:image/png;base64,{0}", base64String)"/>
+                        <img class="myFilmsPoster" src="@($"data:image/png;base64,{base64String}")" alt=""/>
                     </th>
                     <th>
                         <a asp-action="Film" asp-controller="Home" asp-route-id="@film.FilmId">

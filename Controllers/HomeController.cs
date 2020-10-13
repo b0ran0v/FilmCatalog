@@ -16,7 +16,7 @@ namespace FilmCatalog.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private ApplicationDbContext _context;
+        private readonly ApplicationDbContext _context;
 
         public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
         {
@@ -24,6 +24,7 @@ namespace FilmCatalog.Controllers
             _context = context;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index(int pageNumber = 1)
         {
             return View(await PaginatedList<Film>.CreateAsync(_context.Films, pageNumber, 3));
@@ -35,10 +36,12 @@ namespace FilmCatalog.Controllers
             return View(new ErrorViewModel {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
         }
 
+        
+        [HttpGet]
         public IActionResult Film(int id)
         {
             var film = _context.Films.Include(f => f.User).FirstOrDefault(f => f.FilmId == id);
-            if (film == null) return StatusCode(404);
+            if (film == null) return NotFound();
             return View(film);
         }
     }

@@ -15,7 +15,7 @@ namespace FilmCatalog.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ApplicationDbContext _context;
-        private string _notification = string.Empty;
+        private static string _notification = string.Empty;
 
         public AdminController(ILogger<HomeController> logger, ApplicationDbContext context)
         {
@@ -23,12 +23,14 @@ namespace FilmCatalog.Controllers
             _context = context;
         }
 
+        [HttpGet]
         [Authorize]
         public IActionResult AdminPage()
         {
             var myFilms = from film in _context.Films where film.User.UserName == User.Identity.Name select film;
             ViewData["myFilms"] = myFilms.ToList();
             ViewData["Notification"] = _notification;
+            _notification = string.Empty;
             return View();
         }
 
@@ -58,7 +60,7 @@ namespace FilmCatalog.Controllers
                 };
                 _context.Films.Add(film);
                 _context.SaveChanges();
-                _notification = "Фильм успешно добавлен";
+                _notification = $"Фильм {film.Title} успешно добавлен.";
                 return RedirectToAction("AdminPage");
             }
 
@@ -71,11 +73,12 @@ namespace FilmCatalog.Controllers
         [Authorize]
         public IActionResult EditFilm(int id)
         {
-            var film = _context.Films.Include(f=>f.User).FirstOrDefault(f => f.FilmId == id);
+            var film = _context.Films.Include(f => f.User).FirstOrDefault(f => f.FilmId == id);
             var form = new FilmForm();
             if (film != null)
             {
-                if (film.User.UserName != User.Identity.Name) return StatusCode(403);
+                if (!IsAllowed(film.User.UserName)) return Forbid();
+
                 form.Title = film.Title;
                 form.YearPublished = film.YearPublished;
                 form.Director = film.Director;
@@ -99,12 +102,13 @@ namespace FilmCatalog.Controllers
         [Authorize]
         public IActionResult EditFilm(FilmForm form)
         {
-            var film = _context.Films.Include(f=>f.User).FirstOrDefault(f => f.FilmId == form.FilmId);
+            var film = _context.Films.Include(f => f.User).FirstOrDefault(f => f.FilmId == form.FilmId);
             if (ModelState.IsValid)
             {
                 if (film != null)
                 {
-                    if (film.User.UserName != User.Identity.Name) return StatusCode(403);
+                    if (!IsAllowed(film.User.UserName)) return Forbid();
+
                     film.Title = form.Title;
                     film.YearPublished = form.YearPublished;
                     film.Description = form.Description;
@@ -112,7 +116,7 @@ namespace FilmCatalog.Controllers
                     if (form.Poster != null) film.Poster = Tools.Tools.ReadImage(form.Poster);
                     _context.Update(film);
                     _context.SaveChanges();
-                    _notification = "Информация успешно изменена";
+                    _notification = $"Информация в фильме {film.Title} успешно изменена.";
                     return RedirectToAction("AdminPage");
                 }
             }
@@ -128,13 +132,23 @@ namespace FilmCatalog.Controllers
         [HttpPost]
         public IActionResult RemoveFilm(int id)
         {
-            var film = _context.Films.Include(f=>f.User).FirstOrDefault(f => f.FilmId == id);
-            if (film == null) return StatusCode(404);
-            if (film.User.UserName != User.Identity.Name) return StatusCode(403);
+            var film = _context.Films.Include(f => f.User).FirstOrDefault(f => f.FilmId == id);
+            
+            if (film == null) return NotFound();
+            if (!IsAllowed(film.User.UserName)) return Forbid();
+            
             _context.Films.Attach(film);
             _context.Films.Remove(film);
             _context.SaveChanges();
+            _notification = $"Фильм {film.Title} успешно удален.";
             return RedirectToAction("AdminPage");
+        }
+
+        
+        //Check if User allowed to edit or delete
+        public bool IsAllowed(string username)
+        {
+            return username == User.Identity.Name;
         }
     }
 }
