@@ -6,5 +6,6 @@ namespace FilmCatalog.Models.Authorization
     public class ApplicationUser: IdentityUser
     {
         public virtual ICollection<Film> Films { get; set; }
+        public virtual ICollection<Like> Likes { get; set; }
     }
 }

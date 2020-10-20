@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using FilmCatalog.Models.Authorization;
 
 namespace FilmCatalog.Models
@@ -12,5 +13,6 @@ namespace FilmCatalog.Models
         [Required] public string Director { get; set; }
         [Required] public ApplicationUser User { get; set; }
         [Required] public byte[] Poster { get; set; }
+        public virtual ICollection<Like> Likes { get; set; }
     }
 }

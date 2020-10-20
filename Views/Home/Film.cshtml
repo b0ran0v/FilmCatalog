@@ -2,9 +2,20 @@
 @{
     var film = Model;
     ViewData["Title"] = film.Title;
-    List<Film> films = ViewData["Films"] as List<Film>;
     string base64String = string.Empty;
+    string likeClass = ViewData["LikeClass"].ToString();
 }
+
+@section Scripts{
+    <script type="text/javascript">
+        function myFunction(x) {
+            x.classList.toggle("fa-thumbs-down");
+            console.log(x.className);
+        }
+    </script>
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <div class="film">
     <section class="filmInfoSection">
@@ -32,6 +43,11 @@
         </p>
         <p>
             <strong>Posted by: </strong>@film.User.Email
+        </p>
+        <p>
+            <a asp-action="Like" asp-controller="Home" asp-route-id="@film.FilmId">
+                <i class="@likeClass">@film.Likes.Count</i>
+            </a>
         </p>
     </section>
 </div>

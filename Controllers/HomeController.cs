@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using FilmCatalog.Models;
 using FilmCatalog.Models.Forms;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace FilmCatalog.Controllers
@@ -36,13 +37,42 @@ namespace FilmCatalog.Controllers
             return View(new ErrorViewModel {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
         }
 
-        
+
         [HttpGet]
         public IActionResult Film(int id)
         {
-            var film = _context.Films.Include(f => f.User).FirstOrDefault(f => f.FilmId == id);
+            var film = _context.Films.Include(f => f.User).
+                Include(f => f.Likes).FirstOrDefault(f => f.FilmId == id);
             if (film == null) return NotFound();
+
+            string likeClass = "fa fa-thumbs-up";
+            ViewData["LikeClass"] = CurrentUserLiked(film) ? $"{likeClass} fa fa-thumbs-down" : likeClass;
             return View(film);
+        }
+        
+        [HttpGet]
+        [Authorize]
+        public IActionResult Like(int id)
+        {
+            var film = _context.Films.Include(f => f.User).
+                Include(f => f.Likes).FirstOrDefault(f => f.FilmId == id);
+            if (film == null) return NotFound();
+            if (!CurrentUserLiked(film))
+            {
+                Like newLike = new Like
+                {
+                    Film = film, 
+                    User = _context.Users.FirstOrDefault(u => u.UserName == User.Identity.Name)
+                };
+                _context.Likes.Add(newLike);
+                _context.SaveChanges();   
+            }
+            return RedirectToAction("Film");
+        }
+
+        public bool CurrentUserLiked(Film film)
+        {
+            return film.Likes.FirstOrDefault(l => l.User.UserName == User.Identity.Name)!=null;
         }
     }
 }

@@ -16,5 +16,6 @@ namespace FilmCatalog.Data
         }
 
         public DbSet<Film> Films { get; set; }
+        public DbSet<Like> Likes { get; set; }
     }
 }

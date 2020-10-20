@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using FilmCatalog.Data;
 using FilmCatalog.Models;
@@ -78,7 +79,7 @@ namespace FilmCatalog.Controllers
             if (film != null)
             {
                 if (!IsAllowed(film.User.UserName)) return Forbid();
-
+                
                 form.Title = film.Title;
                 form.YearPublished = film.YearPublished;
                 form.Director = film.Director;
@@ -108,7 +109,6 @@ namespace FilmCatalog.Controllers
                 if (film != null)
                 {
                     if (!IsAllowed(film.User.UserName)) return Forbid();
-
                     film.Title = form.Title;
                     film.YearPublished = form.YearPublished;
                     film.Description = form.Description;
