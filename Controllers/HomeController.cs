@@ -31,6 +31,15 @@ namespace FilmCatalog.Controllers
             return View(await PaginatedList<Film>.CreateAsync(_context.Films, pageNumber, 3));
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Index(string text)
+        {
+            if (!string.IsNullOrWhiteSpace(text))
+                return View(await PaginatedList<Film>.CreateAsync(
+                    _context.Films.Where(film => film.Title.ToLower().Contains(text.ToLower())), 1, 3));
+            return View(await PaginatedList<Film>.CreateAsync(_context.Films, 1, 3));
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
@@ -41,31 +50,30 @@ namespace FilmCatalog.Controllers
         [HttpGet]
         public IActionResult Film(int id)
         {
-            var film = _context.Films.Include(f => f.User).
-                Include(f => f.Likes).FirstOrDefault(f => f.FilmId == id);
+            var film = _context.Films.Include(f => f.User).Include(f => f.Likes).FirstOrDefault(f => f.FilmId == id);
             if (film == null) return NotFound();
             string likeClass = "fa fa-thumbs-up";
             ViewData["LikeClass"] = likeClass;
             if (User.Identity.IsAuthenticated)
             {
-                ViewData["LikeClass"] = CurrentUserLiked(film.FilmId) ? $"{likeClass} fa fa-thumbs-down" : likeClass;   
+                ViewData["LikeClass"] = CurrentUserLiked(film.FilmId) ? $"{likeClass} fa fa-thumbs-down" : likeClass;
             }
+
             return View(film);
         }
-        
+
         [HttpGet]
         [Authorize]
         public IActionResult Like(long id)
         {
-            var film = _context.Films.Include(f => f.User).
-                Include(f => f.Likes).FirstOrDefault(f => f.FilmId == id);
+            var film = _context.Films.Include(f => f.User).Include(f => f.Likes).FirstOrDefault(f => f.FilmId == id);
             if (film == null) return NotFound();
 
             if (!CurrentUserLiked(film.FilmId))
             {
                 Like newLike = new Like
                 {
-                    Film = film, 
+                    Film = film,
                     User = _context.Users.FirstOrDefault(u => u.UserName == User.Identity.Name)
                 };
                 _context.Likes.Add(newLike);
@@ -75,7 +83,7 @@ namespace FilmCatalog.Controllers
                 var likeToRemove = _context.Likes.Include(l => l.User).Include(l => l.Film)
                     .FirstOrDefault(l => l.Film.FilmId == id && l.User.UserName == User.Identity.Name) ?? new Like();
                 _context.Attach(likeToRemove);
-                _context.Likes.Remove(likeToRemove);   
+                _context.Likes.Remove(likeToRemove);
             }
 
             _context.SaveChanges();
@@ -84,8 +92,8 @@ namespace FilmCatalog.Controllers
 
         public bool CurrentUserLiked(long id)
         {
-            return _context.Likes.Include(f=>f.User).Include(f=>f.Film).
-                FirstOrDefault(l => l.Film.FilmId==id && l.User.UserName == User.Identity.Name)!=null;
+            return _context.Likes.Include(f => f.User).Include(f => f.Film)
+                .FirstOrDefault(l => l.Film.FilmId == id && l.User.UserName == User.Identity.Name) != null;
         }
     }
 }
