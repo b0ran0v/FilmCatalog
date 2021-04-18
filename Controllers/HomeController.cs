@@ -55,7 +55,7 @@ namespace FilmCatalog.Controllers
         
         [HttpGet]
         [Authorize]
-        public IActionResult Like(int id)
+        public IActionResult Like(long id)
         {
             var film = _context.Films.Include(f => f.User).
                 Include(f => f.Likes).FirstOrDefault(f => f.FilmId == id);
@@ -82,7 +82,7 @@ namespace FilmCatalog.Controllers
             return RedirectToAction("Film", new {id});
         }
 
-        public bool CurrentUserLiked(int id)
+        public bool CurrentUserLiked(long id)
         {
             return _context.Likes.Include(f=>f.User).Include(f=>f.Film).
                 FirstOrDefault(l => l.Film.FilmId==id && l.User.UserName == User.Identity.Name)!=null;

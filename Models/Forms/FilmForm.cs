@@ -18,6 +18,6 @@ namespace FilmCatalog.Models.Forms
 
         [Required] public IFormFile Poster { get; set; }
 
-        public int FilmId { get; set; }
+        public long FilmId { get; set; }
     }
 }

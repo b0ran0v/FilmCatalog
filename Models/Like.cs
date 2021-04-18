@@ -5,7 +5,7 @@ namespace FilmCatalog.Models
 {
     public class Like
     {
-        [Key] public int LikeId { get; set; }
+        [Key] public long LikeId { get; set; }
         [Required] public Film Film { get; set; }
         [Required] public ApplicationUser User { get; set; }
     }

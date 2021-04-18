@@ -86,9 +86,9 @@ namespace FilmCatalog.Migrations
 
             modelBuilder.Entity("FilmCatalog.Models.Film", b =>
                 {
-                    b.Property<int>("FilmId")
+                    b.Property<long>("FilmId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("bigint")
                         .UseIdentityColumn();
 
                     b.Property<string>("Description")
@@ -123,13 +123,13 @@ namespace FilmCatalog.Migrations
 
             modelBuilder.Entity("FilmCatalog.Models.Like", b =>
                 {
-                    b.Property<int>("LikeId")
+                    b.Property<long>("LikeId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("bigint")
                         .UseIdentityColumn();
 
-                    b.Property<int>("FilmId")
-                        .HasColumnType("int");
+                    b.Property<long>("FilmId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("UserId")
                         .IsRequired()

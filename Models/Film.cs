@@ -6,7 +6,7 @@ namespace FilmCatalog.Models
 {
     public class Film
     {
-        [Key] public int FilmId { get; set; }
+        [Key] public long FilmId { get; set; }
         [Required] public string Title { get; set; }
         [Required] public string Description { get; set; }
         [Required] public int YearPublished { get; set; }

@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FilmCatalog.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20201015094908_Like")]
-    partial class Like
+    [Migration("20210418155355_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -88,9 +88,9 @@ namespace FilmCatalog.Migrations
 
             modelBuilder.Entity("FilmCatalog.Models.Film", b =>
                 {
-                    b.Property<int>("FilmId")
+                    b.Property<long>("FilmId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("bigint")
                         .UseIdentityColumn();
 
                     b.Property<string>("Description")
@@ -125,13 +125,13 @@ namespace FilmCatalog.Migrations
 
             modelBuilder.Entity("FilmCatalog.Models.Like", b =>
                 {
-                    b.Property<int>("LikeId")
+                    b.Property<long>("LikeId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("bigint")
                         .UseIdentityColumn();
 
-                    b.Property<int>("FilmId")
-                        .HasColumnType("int");
+                    b.Property<long>("FilmId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("UserId")
                         .IsRequired()
