@@ -1,15 +1,10 @@
-﻿using System;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using FilmCatalog.Data;
-using FilmCatalog.Models;
 using FilmCatalog.Models.Forms;
 using FilmCatalog.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -22,10 +17,9 @@ namespace FilmCatalog.Controllers
         private readonly FilmService _filmService;
         private static string _notification = string.Empty;
 
-        public AdminController(ILogger<HomeController> logger, 
-            ApplicationDbContext context, 
-            FilmService filmService, 
-            IHttpContextAccessor ctxAccessor)
+        public AdminController(ILogger<HomeController> logger,
+            ApplicationDbContext context,
+            FilmService filmService)
         {
             _logger = logger;
             _context = context;
@@ -59,8 +53,7 @@ namespace FilmCatalog.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _filmService.AddNewFilm(model);
-                _notification = $"Фильм {model.Title} успешно добавлен.";
+                _notification = await _filmService.AddNewFilm(model);
                 return RedirectToAction("AdminPage");
             }
 
@@ -74,7 +67,7 @@ namespace FilmCatalog.Controllers
         public async Task<IActionResult> EditFilm(int id)
         {
             var form = await _filmService.EditFilm(id);
-            return View(form);
+            return form == null ? (IActionResult)new NotFoundResult() : View(form);
         }
 
 
@@ -85,9 +78,8 @@ namespace FilmCatalog.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _filmService.EditFilm(form);
-                _notification = $"Информация в фильме {form.Title} успешно изменена.";
-                return RedirectToAction("AdminPage");
+                _notification = await _filmService.EditFilm(form);
+                return _notification == null ? (IActionResult)new NotFoundResult() : RedirectToAction("AdminPage");
             }
 
             ModelState.AddModelError("", "Форма заполнена неправильно");
@@ -95,13 +87,13 @@ namespace FilmCatalog.Controllers
             return View("EditFilm", form);
         }
 
-        [Authorize]
         [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveFilm(int id)
         {
-            await _filmService.RemoveFilm(id);
-            _notification = "Фильм успешно удален.";
-            return RedirectToAction("AdminPage");
+            _notification = await _filmService.RemoveFilm(id);
+            return _notification == null ? (IActionResult)new NotFoundResult() : RedirectToAction("AdminPage");
         }
     }
 }
