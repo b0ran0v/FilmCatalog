@@ -16,7 +16,7 @@ namespace FilmCatalog.Models.Forms
 
         [Required] public string Director { get; set; }
 
-        [Required] public IFormFile Poster { get; set; }
+        public IFormFile Poster { get; set; }
 
         public long FilmId { get; set; }
     }

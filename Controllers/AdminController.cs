@@ -1,12 +1,15 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using FilmCatalog.Data;
 using FilmCatalog.Models;
 using FilmCatalog.Models.Forms;
+using FilmCatalog.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -16,20 +19,25 @@ namespace FilmCatalog.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly ApplicationDbContext _context;
+        private readonly FilmService _filmService;
         private static string _notification = string.Empty;
 
-        public AdminController(ILogger<HomeController> logger, ApplicationDbContext context)
+        public AdminController(ILogger<HomeController> logger, 
+            ApplicationDbContext context, 
+            FilmService filmService, 
+            IHttpContextAccessor ctxAccessor)
         {
             _logger = logger;
             _context = context;
+            _filmService = filmService;
         }
 
         [HttpGet]
         [Authorize]
-        public IActionResult AdminPage()
+        public async Task<IActionResult> AdminPage()
         {
             var myFilms = from film in _context.Films where film.User.UserName == User.Identity.Name select film;
-            ViewData["myFilms"] = myFilms.ToList();
+            ViewData["myFilms"] = await myFilms.ToListAsync();
             ViewData["Notification"] = _notification;
             _notification = string.Empty;
             return View();
@@ -46,22 +54,13 @@ namespace FilmCatalog.Controllers
 
         [HttpPost]
         [Authorize]
-        public IActionResult AddNewFilm(FilmForm model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddNewFilm(FilmForm model)
         {
             if (ModelState.IsValid)
             {
-                Film film = new Film
-                {
-                    Title = model.Title,
-                    YearPublished = model.YearPublished,
-                    Description = model.Description,
-                    Director = model.Director,
-                    User = _context.Users.FirstOrDefault(user => user.UserName == User.Identity.Name),
-                    Poster = Tools.Tools.ReadImage(model.Poster)
-                };
-                _context.Films.Add(film);
-                _context.SaveChanges();
-                _notification = $"Фильм {film.Title} успешно добавлен.";
+                await _filmService.AddNewFilm(model);
+                _notification = $"Фильм {model.Title} успешно добавлен.";
                 return RedirectToAction("AdminPage");
             }
 
@@ -72,83 +71,37 @@ namespace FilmCatalog.Controllers
 
         [HttpGet]
         [Authorize]
-        public IActionResult EditFilm(int id)
+        public async Task<IActionResult> EditFilm(int id)
         {
-            var film = _context.Films.Include(f => f.User).FirstOrDefault(f => f.FilmId == id);
-            var form = new FilmForm();
-            if (film != null)
-            {
-                if (!IsAllowed(film.User.UserName)) return Forbid();
-                
-                form.Title = film.Title;
-                form.YearPublished = film.YearPublished;
-                form.Director = film.Director;
-                form.Description = film.Description;
-                form.FilmId = film.FilmId;
-                if (film.Poster != null)
-                {
-                    var stream = new MemoryStream(film.Poster);
-                    IFormFile file = new FormFile(stream, 0, film.Poster.Length, "name", "fileName");
-                    form.Poster = file;
-                }
-
-                return View(form);
-            }
-
+            var form = await _filmService.EditFilm(id);
             return View(form);
         }
 
 
         [HttpPost]
         [Authorize]
-        public IActionResult EditFilm(FilmForm form)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditFilm(FilmForm form)
         {
-            var film = _context.Films.Include(f => f.User).FirstOrDefault(f => f.FilmId == form.FilmId);
             if (ModelState.IsValid)
             {
-                if (film != null)
-                {
-                    if (!IsAllowed(film.User.UserName)) return Forbid();
-                    film.Title = form.Title;
-                    film.YearPublished = form.YearPublished;
-                    film.Description = form.Description;
-                    film.Director = form.Director;
-                    if (form.Poster != null) film.Poster = Tools.Tools.ReadImage(form.Poster);
-                    _context.Update(film);
-                    _context.SaveChanges();
-                    _notification = $"Информация в фильме {film.Title} успешно изменена.";
-                    return RedirectToAction("AdminPage");
-                }
+                await _filmService.EditFilm(form);
+                _notification = $"Информация в фильме {form.Title} успешно изменена.";
+                return RedirectToAction("AdminPage");
             }
-            else
-            {
-                ModelState.AddModelError("", "Форма заполнена неправильно");
-            }
+
+            ModelState.AddModelError("", "Форма заполнена неправильно");
 
             return View("EditFilm", form);
         }
 
         [Authorize]
         [HttpPost]
-        public IActionResult RemoveFilm(int id)
+        public async Task<IActionResult> RemoveFilm(int id)
         {
-            var film = _context.Films.Include(f => f.User).FirstOrDefault(f => f.FilmId == id);
-            
-            if (film == null) return NotFound();
-            if (!IsAllowed(film.User.UserName)) return Forbid();
-            
-            _context.Films.Attach(film);
-            _context.Films.Remove(film);
-            _context.SaveChanges();
-            _notification = $"Фильм {film.Title} успешно удален.";
+            await _filmService.RemoveFilm(id);
+            _notification = "Фильм успешно удален.";
             return RedirectToAction("AdminPage");
-        }
-
-        
-        //Check if User allowed to edit or delete
-        public bool IsAllowed(string username)
-        {
-            return username == User.Identity.Name;
         }
     }
 }

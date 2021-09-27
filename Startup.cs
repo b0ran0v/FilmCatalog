@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using FilmCatalog.Data;
 using FilmCatalog.Models.Authorization;
+using FilmCatalog.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -56,6 +57,9 @@ namespace FilmCatalog
                     }
                 };
             });
+
+            services.AddTransient<FilmService>();
+            services.AddHttpContextAccessor();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
